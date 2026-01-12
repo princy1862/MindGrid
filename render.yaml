@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: mindgrid-backend
+    env: docker
+    region: oregon
+    plan: free
+    branch: main
+    rootDir: backend
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: FIREBASE_CREDENTIALS_JSON
+        sync: false
