@@ -1,0 +1,30 @@
+{
+  "hosting": {
+    "public": "frontend/out",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "function": "api"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "functions": [
+    {
+      "source": "backend",
+      "codebase": "backend",
+      "runtime": "python311",
+      "memory": "512MiB",
+      "timeoutSeconds": 120,
+      "maxInstances": 10
+    }
+  ]
+}
