@@ -24,46 +24,53 @@ _Textbook becomes mind map, **before** you even finish reading._
 
 ## Why It Exists
 
-Traditional learning is backwards. You read 200 pages sequentially, memorize isolated facts, and somehow expect to understand how everything connects. It's like trying to understand a city by walking down one street.
+Traditional learning treats your brain like a filing cabinet—stuffing in linear facts and hoping they somehow stick together. You read 200 pages sequentially, memorizing isolated data points while missing the big picture. It’s like trying to navigate a city by looking at a single street through a straw.
 
-Your brain thinks in networks, not lines. When you truly understand something, you see how concept A influences concept B, which builds toward concept C. That's the difference between knowing facts and understanding systems.
+The reality? Your brain is a network, not a list.
 
-MindGrid flips this. Upload a textbook, get the entire landscape first. See connections, identify core concepts, dive deep into what matters. Perfect for course catchup, exam prep, or understanding complex subjects.
+True mastery isn't about knowing facts; it’s about understanding systems. When you truly "get" a subject, you see how Concept A influences Concept B, which eventually constructs Concept C. MindGrid is built to mirror this natural cognitive process.
 
-**Moral**: conceptual networks > "Unit 1, Unit 2, Lesson 3..." notes. Linear note-taking hides relationships; networks surface them so you learn faster and remember longer.
+Instead of starting at page one, MindGrid allows you to upload a textbook and instantly see the entire landscape. By visualizing the conceptual network first, you identify the "gravity centers" of a subject, surfacing the hidden relationships that linear notes hide.
+
+The Problem: Linear learning hides connections, leading to rote memorization and quick forgetting.
+
+The Solution: Conceptual networks surface relationships, allowing you to learn faster and retain knowledge longer.
+
+Whether it’s last-minute exam prep or mastering a complex new field, MindGrid helps you stop reading lines and start seeing the grid.
 
 ## Features
 
 - **Drag & drop PDFs** - Works with any textbook, lecture notes, research papers
 - **Interactive knowledge graphs** - Click nodes, explore connections, zoom in/out
-- **Deep concept exploration** - Cmd+Shift+click any node for detailed insights: overview, important formulas, theorems, related concepts
+- **Deep concept exploration** - Click on any node in the graph to get an instant AI explanation of just that specific concept, without needing to re-read the book.
 - **AI-generated study guides** - Overviews, summaries, key concepts
 - **Audio study materials** - Listen to your content while commuting/gym
-- **Smart concept mapping** - AI finds relationships you'd miss reading linearly
-- **Dark/light themes** - Study at 3am without burning your eyes
+- **Smart concept mapping** - AI finds relationships you'd miss reading linearl
 
 ## How It Works
 
-1. **PDF → Text** → PyPDF extracts raw content
-2. **Text → Concepts** → OpenRouter (Grok 4 Fast) identifies key ideas and relationships
-3. **Concepts → Graph** → Gemini maps connections and hierarchy
-4. **Graph → Materials** → Generate overviews, audio scripts, study guides
-5. **Script → Audio** → ElevenLabs converts to speech for audio study guides
-
+1. **PDF → Text** → pypdf extracts raw content and structural data from uploaded textbooks and documents.
+2. **Text → Digest** → analyzes the raw text to distill core concepts, critical formulas, and logical learning sequences.
+3. **Digest → Graph** → Google Gemini 2.5 structures the concepts into a deep hierarchical network, defining root nodes and logical branches.
+4. **Graph →  Study Aids** → The system automatically generates exam-prep overviews, detailed cheat sheets, and structured conceptual breakdowns.
+5. **Script → Audio** → ElevenLabs converts the AI-generated "buddy-style" script into a realistic audio summary for on-the-go learning.
 Result: Interactive concept map you can explore + AI-generated study materials
 
 ## Setup
 
 **Prerequisites:**
 
-- Python 3.8+
-- Node.js 18+
+- Python 3.11+
+- Node.js 18+ (20+ Recommended)
 - API keys (see below)
+- Firebase Project (Firestore enabled)
 
 **Backend:**
 
 ```bash
 cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python main.py
 ```
@@ -90,10 +97,10 @@ App runs on `http://localhost:3000`
 
 ```bash
 # backend/.env
-GEMINI_API_KEY=your_key          # Deep concept analysis & relationships
-OPENROUTER_API_KEY=your_key      # AI digest, cheatsheets, audio scripts
-ELEVENLABS_API_KEY=your_key      # Text-to-speech audio generation
-FIREBASE_SERVICE_ACCOUNT_PATH=secrets/firebase_private.json
+GEMINI_API_KEY=your_key           # Graph construction & relationships (Google AI Studio)
+OPENROUTER_API_KEY=your_key       # Fast summaries & study guides (Grok 4 via OpenRouter)
+ELEVENLABS_API_KEY=your_key        # High-quality audio generation
+FIREBASE_SERVICE_ACCOUNT_PATH=secrets/firebase_private.json   # Local path
 ```
 
 > [!WARNING]
@@ -106,29 +113,29 @@ FIREBASE_SERVICE_ACCOUNT_PATH=secrets/firebase_private.json
 
 **Backend:**
 
-- **FastAPI** - Python web framework
-- **PyPDF** - PDF text extraction
-- **OpenRouter (Grok 4 Fast)** - AI digest, cheatsheets, audio scripts
-- **Google Gemini 2.5 Flash Lite** - Deep concept analysis, relationship mapping
-- **Google Gemini 2.0 Flash Lite** - Overview of concepts when user Cmd+Shift+clicks on a node
-- **ElevenLabs** - Text-to-speech audio generation
-- **Firebase Firestore** - NoSQL database
-- **Docker** - Containerization
+- **FastAPI** - High-performance Python web framework for the core API logic
+- **PyPDF** - PDF processing library for extracting text from academic textbooks
+- **OpenRouter (Grok 4 Fast)** - Powers AI digests, quick cheatsheets, and audio scripts
+- **Google Gemini 2.5 Flash Lite** - Handles deep concept analysis and complex relationship mappingg
+- **Google Gemini 2.0 Flash Lite** - Provides instant concept overviews via Cmd+Shift+Click node interactions
+- **ElevenLabs** - Generates realistic AI audio summaries for auditory learning
+- **Firebase Firestore** - NoSQL document database for storing projects and concept metadata
+- **Docker** - Containerization for consistent deployment and scaling
 
 **Frontend:**
 
-- **Next.js 14** - React framework with App Router
-- **React Force Graph** - Interactive 3D graph visualization
-- **TailwindCSS** - CSS framework with dark/light themes
-- **Shadcn UI** - Component library
-- **TypeScript** - Type-safe development
-- **Vercel** - Frontend hosting
+- **Next.js 15** - React framework using the App Router for optimized routing and SSR
+- **React Force Graph** - Interactive 2D/3D visualization for the knowledge graph network
+- **TailwindCSS** - Utility-first CSS framework for rapid UI development and light themes
+- **Shadcn UI** - Accessible and customizable component library
+- **TypeScript** - Ensures type-safety across the frontend architecture
+- **Vercel** - Global Edge Network for frontend hosting and performance
 
 **Cloud & Deployment:**
 
-- **Google Cloud Platform** - Backend hosting
-- **Firebase** - Authentication, database, cloud functions
-- **Vercel** - Frontend deployment
+- **Render** - Managed cloud platform for hosting the Python/FastAPI backend
+- **Firebase** - Comprehensive suite for authentication and NoSQL database management
+- **Vercel** - Deployment platform for the Next.js frontend and CI/CD integration
 
 ## View more about MindGrid 👇
 
