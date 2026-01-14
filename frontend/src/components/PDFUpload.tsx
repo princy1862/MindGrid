@@ -112,8 +112,18 @@ export default function PDFUpload({ onComplete }: PDFUploadProps = {}) {
 
         console.log("Project saved with ID:", saveData.project_id);
 
+        // Store graph data in sessionStorage for the project page
+        sessionStorage.setItem("currentProjectId", saveData.project_id);
+        sessionStorage.setItem("graphData", JSON.stringify(graphData.graph_data));
+
         if (onComplete) {
-          setTimeout(() => onComplete(), 2000);
+          // Redirect to the new project page after a short delay
+          setTimeout(() => {
+            router.push(`/project/${saveData.project_id}`);
+          }, 1500);
+        } else {
+          // Direct navigation if no callback
+          router.push(`/project/${saveData.project_id}`);
         }
       } catch (err) {
         clearInterval(tipInterval);
@@ -161,11 +171,10 @@ export default function PDFUpload({ onComplete }: PDFUploadProps = {}) {
     <div className="w-full">
       {/* Upload Area */}
       <div
-        className={`relative rounded-lg border-2 border-dashed transition-all duration-300 ${
-          isDragOver
+        className={`relative rounded-lg border-2 border-dashed transition-all duration-300 ${isDragOver
             ? "border-purple-400 bg-purple-50"
             : "border-gray-300 bg-white"
-        } ${isUploading ? "pointer-events-none opacity-50" : ""}`}
+          } ${isUploading ? "pointer-events-none opacity-50" : ""}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}

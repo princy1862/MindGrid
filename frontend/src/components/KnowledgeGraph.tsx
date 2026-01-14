@@ -6,6 +6,8 @@ import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import NotesPanel from "./NotesPanel";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+
 const ForceGraph2D = dynamic(
   () => import("react-force-graph-2d").then((mod) => mod.default),
   { ssr: false }
@@ -85,7 +87,7 @@ export default function KnowledgeGraph({
             name: node.name,
             val: 1,
           });
-          
+
           // Also add referenced nodes
           if (node.ins) {
             node.ins.forEach((inNode: string) => {
@@ -162,7 +164,7 @@ export default function KnowledgeGraph({
       const baseSize = 25;
       const maxSize = 70;
       const size = baseSize + (importance * (maxSize - baseSize));
-      
+
       return {
         ...node,
         val: size,
@@ -223,7 +225,7 @@ export default function KnowledgeGraph({
 
       setLoadingDef(true);
       try {
-        const response = await fetch(`/api/concept-definition`, {
+        const response = await fetch(`${API_BASE_URL}/concept-definition`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -297,13 +299,13 @@ export default function KnowledgeGraph({
       const fg = fgRef.current as any;
       const nodeCount = filteredData.nodes.length;
       const dynamicDistance = Math.max(150, Math.min(350, nodeCount * 10));
-      
+
       // Configure link distance dynamically based on node count
       fg.d3Force('link')?.distance(() => dynamicDistance);
-      
+
       // Strong repulsion force to spread nodes apart
       fg.d3Force('charge')?.strength(-1000);
-      
+
       // Center force to keep graph centered
       fg.d3Force('center')?.strength(0.05);
     }
@@ -312,11 +314,11 @@ export default function KnowledgeGraph({
   // Smooth animation ticker - updates every 50ms (20fps) for efficiency
   useEffect(() => {
     if (graphView !== "network") return;
-    
+
     const interval = setInterval(() => {
       setAnimationTick(t => t + 1);
     }, 50);
-    
+
     return () => clearInterval(interval);
   }, [graphView]);
 
@@ -370,21 +372,19 @@ export default function KnowledgeGraph({
         <div className="flex gap-1">
           <button
             onClick={() => setGraphView("network")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 ${
-              graphView === "network"
-                ? "bg-gray-900 text-white"
-                : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-300"
-            }`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 ${graphView === "network"
+              ? "bg-gray-900 text-white"
+              : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-300"
+              }`}
           >
             Network
           </button>
           <button
             onClick={() => setGraphView("timeline")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 ${
-              graphView === "timeline"
-                ? "bg-gray-900 text-white"
-                : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-300"
-            }`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 ${graphView === "timeline"
+              ? "bg-gray-900 text-white"
+              : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-300"
+              }`}
           >
             Timeline
           </button>
@@ -403,18 +403,18 @@ export default function KnowledgeGraph({
               nodeCanvasObject={(node: any, ctx: any) => {
                 // Guard against invalid coordinates during force simulation
                 if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
-                
+
                 const size = node.val || 18;
                 const isHovered = hoveredNode?.id === node.id;
                 const nodeColor = getNodeColor(node);
 
                 // Create gradient for node
                 const gradient = ctx.createRadialGradient(
-                  node.x - size * 0.3, 
-                  node.y - size * 0.3, 
-                  0, 
-                  node.x, 
-                  node.y, 
+                  node.x - size * 0.3,
+                  node.y - size * 0.3,
+                  0,
+                  node.x,
+                  node.y,
                   size
                 );
                 gradient.addColorStop(0, nodeColor);
@@ -431,210 +431,210 @@ export default function KnowledgeGraph({
                 }
 
                 // Draw orbital ring for larger nodes
-                  if (size > 25) {
-                    ctx.strokeStyle = nodeColor + "40";
-                    ctx.lineWidth = 1.5;
-                    ctx.setLineDash([3, 6]);
-                    ctx.beginPath();
-                    ctx.arc(node.x, node.y, size + 12, 0, 2 * Math.PI);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-                  }
-
-                  // Draw main node circle with gradient
-                  ctx.fillStyle = gradient;
-                  ctx.shadowColor = nodeColor;
-                  ctx.shadowBlur = isHovered ? 25 : 12;
+                if (size > 25) {
+                  ctx.strokeStyle = nodeColor + "40";
+                  ctx.lineWidth = 1.5;
+                  ctx.setLineDash([3, 6]);
                   ctx.beginPath();
-                  ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
-                  ctx.fill();
-                  ctx.shadowBlur = 0;
+                  ctx.arc(node.x, node.y, size + 12, 0, 2 * Math.PI);
+                  ctx.stroke();
+                  ctx.setLineDash([]);
+                }
 
-                  // Draw glossy highlight
-                  const highlightGradient = ctx.createRadialGradient(
-                    node.x - size * 0.4,
-                    node.y - size * 0.4,
-                    0,
-                    node.x - size * 0.2,
-                    node.y - size * 0.2,
-                    size * 0.8
+                // Draw main node circle with gradient
+                ctx.fillStyle = gradient;
+                ctx.shadowColor = nodeColor;
+                ctx.shadowBlur = isHovered ? 25 : 12;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Draw glossy highlight
+                const highlightGradient = ctx.createRadialGradient(
+                  node.x - size * 0.4,
+                  node.y - size * 0.4,
+                  0,
+                  node.x - size * 0.2,
+                  node.y - size * 0.2,
+                  size * 0.8
+                );
+                highlightGradient.addColorStop(0, "rgba(255,255,255,0.4)");
+                highlightGradient.addColorStop(1, "rgba(255,255,255,0)");
+                ctx.fillStyle = highlightGradient;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // Draw border
+                ctx.strokeStyle = isHovered ? "#ffffff" : "rgba(255,255,255,0.6)";
+                ctx.lineWidth = isHovered ? 3 : 1.5;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
+                ctx.stroke();
+
+                // Show label for larger nodes or on hover
+                if (isHovered || size > 30) {
+                  const label = node.name.length > 20 ? node.name.substring(0, 18) + "..." : node.name;
+                  ctx.font = `bold ${isHovered ? 13 : 11}px 'Inter', system-ui, sans-serif`;
+                  ctx.textAlign = "center";
+                  ctx.textBaseline = "middle";
+
+                  // Text shadow for readability
+                  ctx.fillStyle = "rgba(0,0,0,0.8)";
+                  ctx.fillText(label, node.x + 1, node.y + size + 16);
+
+                  // Main text
+                  ctx.fillStyle = "#ffffff";
+                  ctx.fillText(label, node.x, node.y + size + 15);
+                }
+              }}
+              linkCanvasObject={(link: any, ctx: any) => {
+                const srcNode = typeof link.source === "object" ? link.source : filteredData.nodes.find((n: any) => n.id === link.source);
+                const tgtNode = typeof link.target === "object" ? link.target : filteredData.nodes.find((n: any) => n.id === link.target);
+
+                // Check for valid nodes and coordinates
+                if (!srcNode || !tgtNode) return;
+                if (!Number.isFinite(srcNode.x) || !Number.isFinite(srcNode.y) ||
+                  !Number.isFinite(tgtNode.x) || !Number.isFinite(tgtNode.y)) return;
+
+                const srcColor = getNodeColor(srcNode);
+
+                // Create gradient along link
+                const gradient = ctx.createLinearGradient(srcNode.x, srcNode.y, tgtNode.x, tgtNode.y);
+                gradient.addColorStop(0, srcColor + "90");
+                gradient.addColorStop(0.5, srcColor + "50");
+                gradient.addColorStop(1, srcColor + "20");
+
+                // Draw curved link
+                const midX = (srcNode.x + tgtNode.x) / 2;
+                const midY = (srcNode.y + tgtNode.y) / 2;
+                const dx = tgtNode.x - srcNode.x;
+                const dy = tgtNode.y - srcNode.y;
+                const curvature = 0.15;
+                const ctrlX = midX - dy * curvature;
+                const ctrlY = midY + dx * curvature;
+
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(srcNode.x, srcNode.y);
+                ctx.quadraticCurveTo(ctrlX, ctrlY, tgtNode.x, tgtNode.y);
+                ctx.stroke();
+
+                // Draw multiple animated particles along link using animationTick
+                const linkId = `${srcNode.id}-${tgtNode.id}`;
+                const linkHash = linkId.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+                const particleOffset = (linkHash % 100) / 100; // Unique offset per link
+
+                // Draw 2 particles per link at different phases
+                for (let p = 0; p < 2; p++) {
+                  const t = ((animationTick * 0.02 + particleOffset + p * 0.5) % 1);
+                  const particleX = Math.pow(1 - t, 2) * srcNode.x + 2 * (1 - t) * t * ctrlX + Math.pow(t, 2) * tgtNode.x;
+                  const particleY = Math.pow(1 - t, 2) * srcNode.y + 2 * (1 - t) * t * ctrlY + Math.pow(t, 2) * tgtNode.y;
+
+                  ctx.fillStyle = srcColor;
+                  ctx.shadowColor = srcColor;
+                  ctx.shadowBlur = 6;
+                  ctx.beginPath();
+                  ctx.arc(particleX, particleY, 2.5, 0, 2 * Math.PI);
+                  ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+              }}
+              linkColor={() => "transparent"}
+              linkWidth={0}
+              onNodeHover={(node: any) => setHoveredNode(node)}
+              onNodeClick={(node: any) => handleNodeClick(node)}
+              backgroundColor="transparent"
+              enableNodeDrag={true}
+              enableZoomInteraction={true}
+              cooldownTicks={100}
+              warmupTicks={30}
+              d3VelocityDecay={0.25}
+              linkDirectionalParticles={0}
+              d3AlphaDecay={0.02}
+              dagMode={undefined}
+              onEngineStop={() => fgRef.current?.zoomToFit(400, 80)}
+              nodeRelSize={8}
+              onEngineTick={() => {
+                // Dynamically adjust forces based on node count
+                if (fgRef.current) {
+                  const fg = fgRef.current as any;
+                  const nodeCount = filteredData?.nodes?.length || 1;
+                  const dynamicDistance = Math.max(120, Math.min(300, nodeCount * 8));
+
+                  // Increase link distance dynamically
+                  fg.d3Force('link')?.distance(() => dynamicDistance);
+
+                  // Stronger charge repulsion to spread nodes
+                  fg.d3Force('charge')?.strength(-800);
+
+                  // Add collision force based on node size
+                  fg.d3Force('collision',
+                    (window as any).d3?.forceCollide?.()
+                      ?.radius((node: any) => (node.val || 18) + 25)
+                      ?.strength(0.9)
                   );
-                  highlightGradient.addColorStop(0, "rgba(255,255,255,0.4)");
-                  highlightGradient.addColorStop(1, "rgba(255,255,255,0)");
-                  ctx.fillStyle = highlightGradient;
-                  ctx.beginPath();
-                  ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
-                  ctx.fill();
-
-                  // Draw border
-                  ctx.strokeStyle = isHovered ? "#ffffff" : "rgba(255,255,255,0.6)";
-                  ctx.lineWidth = isHovered ? 3 : 1.5;
-                  ctx.beginPath();
-                  ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
-                  ctx.stroke();
-
-                  // Show label for larger nodes or on hover
-                  if (isHovered || size > 30) {
-                    const label = node.name.length > 20 ? node.name.substring(0, 18) + "..." : node.name;
-                    ctx.font = `bold ${isHovered ? 13 : 11}px 'Inter', system-ui, sans-serif`;
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    
-                    // Text shadow for readability
-                    ctx.fillStyle = "rgba(0,0,0,0.8)";
-                    ctx.fillText(label, node.x + 1, node.y + size + 16);
-                    
-                    // Main text
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillText(label, node.x, node.y + size + 15);
-                  }
-                }}
-                linkCanvasObject={(link: any, ctx: any) => {
-                  const srcNode = typeof link.source === "object" ? link.source : filteredData.nodes.find((n: any) => n.id === link.source);
-                  const tgtNode = typeof link.target === "object" ? link.target : filteredData.nodes.find((n: any) => n.id === link.target);
-                  
-                  // Check for valid nodes and coordinates
-                  if (!srcNode || !tgtNode) return;
-                  if (!Number.isFinite(srcNode.x) || !Number.isFinite(srcNode.y) || 
-                      !Number.isFinite(tgtNode.x) || !Number.isFinite(tgtNode.y)) return;
-                  
-                  const srcColor = getNodeColor(srcNode);
-                  
-                  // Create gradient along link
-                  const gradient = ctx.createLinearGradient(srcNode.x, srcNode.y, tgtNode.x, tgtNode.y);
-                  gradient.addColorStop(0, srcColor + "90");
-                  gradient.addColorStop(0.5, srcColor + "50");
-                  gradient.addColorStop(1, srcColor + "20");
-                  
-                  // Draw curved link
-                  const midX = (srcNode.x + tgtNode.x) / 2;
-                  const midY = (srcNode.y + tgtNode.y) / 2;
-                  const dx = tgtNode.x - srcNode.x;
-                  const dy = tgtNode.y - srcNode.y;
-                  const curvature = 0.15;
-                  const ctrlX = midX - dy * curvature;
-                  const ctrlY = midY + dx * curvature;
-                  
-                  ctx.strokeStyle = gradient;
-                  ctx.lineWidth = 2;
-                  ctx.beginPath();
-                  ctx.moveTo(srcNode.x, srcNode.y);
-                  ctx.quadraticCurveTo(ctrlX, ctrlY, tgtNode.x, tgtNode.y);
-                  ctx.stroke();
-                  
-                  // Draw multiple animated particles along link using animationTick
-                  const linkId = `${srcNode.id}-${tgtNode.id}`;
-                  const linkHash = linkId.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-                  const particleOffset = (linkHash % 100) / 100; // Unique offset per link
-                  
-                  // Draw 2 particles per link at different phases
-                  for (let p = 0; p < 2; p++) {
-                    const t = ((animationTick * 0.02 + particleOffset + p * 0.5) % 1);
-                    const particleX = Math.pow(1-t, 2) * srcNode.x + 2 * (1-t) * t * ctrlX + Math.pow(t, 2) * tgtNode.x;
-                    const particleY = Math.pow(1-t, 2) * srcNode.y + 2 * (1-t) * t * ctrlY + Math.pow(t, 2) * tgtNode.y;
-                    
-                    ctx.fillStyle = srcColor;
-                    ctx.shadowColor = srcColor;
-                    ctx.shadowBlur = 6;
-                    ctx.beginPath();
-                    ctx.arc(particleX, particleY, 2.5, 0, 2 * Math.PI);
-                    ctx.fill();
-                  }
-                  ctx.shadowBlur = 0;
-                }}
-                linkColor={() => "transparent"}
-                linkWidth={0}
-                onNodeHover={(node: any) => setHoveredNode(node)}
-                onNodeClick={(node: any) => handleNodeClick(node)}
-                backgroundColor="transparent"
-                enableNodeDrag={true}
-                enableZoomInteraction={true}
-                cooldownTicks={100}
-                warmupTicks={30}
-                d3VelocityDecay={0.25}
-                linkDirectionalParticles={0}
-                d3AlphaDecay={0.02}
-                dagMode={undefined}
-                onEngineStop={() => fgRef.current?.zoomToFit(400, 80)}
-                nodeRelSize={8}
-                onEngineTick={() => {
-                  // Dynamically adjust forces based on node count
-                  if (fgRef.current) {
-                    const fg = fgRef.current as any;
-                    const nodeCount = filteredData?.nodes?.length || 1;
-                    const dynamicDistance = Math.max(120, Math.min(300, nodeCount * 8));
-                    
-                    // Increase link distance dynamically
-                    fg.d3Force('link')?.distance(() => dynamicDistance);
-                    
-                    // Stronger charge repulsion to spread nodes
-                    fg.d3Force('charge')?.strength(-800);
-                    
-                    // Add collision force based on node size
-                    fg.d3Force('collision', 
-                      (window as any).d3?.forceCollide?.()
-                        ?.radius((node: any) => (node.val || 18) + 25)
-                        ?.strength(0.9)
-                    );
-                  }
-                }}
-              />
-            </div>
-            {/* Decorative corner accents */}
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-purple-400/50 rounded-tl-lg pointer-events-none" />
-            <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-purple-400/50 rounded-tr-lg pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-purple-400/50 rounded-bl-lg pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-purple-400/50 rounded-br-lg pointer-events-none" />
+                }
+              }}
+            />
           </div>
-        )}
+          {/* Decorative corner accents */}
+          <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-purple-400/50 rounded-tl-lg pointer-events-none" />
+          <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-purple-400/50 rounded-tr-lg pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-purple-400/50 rounded-bl-lg pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-purple-400/50 rounded-br-lg pointer-events-none" />
+        </div>
+      )}
 
-        {/* Timeline View - Light theme */}
-        {graphView === "timeline" && (
-          <div className="flex-1 m-4 bg-white rounded-lg border border-gray-200 shadow-lg overflow-auto p-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Concept Timeline
-            </h3>
-            <div className="space-y-2">
-              {filteredData.nodes.map((node, idx) => (
-                <div
-                  key={`timeline-${node.id}-${idx}`}
-                  className="p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 hover:border-purple-300 transition-all duration-300"
-                  onClick={() => handleNodeClick(node)}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-8 h-8 rounded-full flex-shrink-0 shadow"
-                        style={{ backgroundColor: getNodeColor(node) }}
-                      />
-                      <div>
-                        <h4 className="font-medium text-gray-900 text-sm">{node.name}</h4>
-                        <p className="text-xs text-gray-500">
-                          {(node as any).connections || 1} connections • {Math.round(((node as any).importance || 0) * 100)}%
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-purple-600 text-xs font-medium">
-                      →
+      {/* Timeline View - Light theme */}
+      {graphView === "timeline" && (
+        <div className="flex-1 m-4 bg-white rounded-lg border border-gray-200 shadow-lg overflow-auto p-4">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">
+            Concept Timeline
+          </h3>
+          <div className="space-y-2">
+            {filteredData.nodes.map((node, idx) => (
+              <div
+                key={`timeline-${node.id}-${idx}`}
+                className="p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 hover:border-purple-300 transition-all duration-300"
+                onClick={() => handleNodeClick(node)}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-8 h-8 rounded-full flex-shrink-0 shadow"
+                      style={{ backgroundColor: getNodeColor(node) }}
+                    />
+                    <div>
+                      <h4 className="font-medium text-gray-900 text-sm">{node.name}</h4>
+                      <p className="text-xs text-gray-500">
+                        {(node as any).connections || 1} connections • {Math.round(((node as any).importance || 0) * 100)}%
+                      </p>
                     </div>
                   </div>
+                  <div className="text-purple-600 text-xs font-medium">
+                    →
+                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Hover Info - Fixed bottom, light theme */}
-        {hoveredNode && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-gray-900 bg-white/95 px-4 py-2 rounded-lg border border-gray-200 flex items-center gap-3 backdrop-blur-sm shadow-xl z-50">
-            <div className="w-4 h-4 rounded-full shadow" style={{ backgroundColor: getNodeColor(hoveredNode) }} />
-            <span className="font-semibold">{hoveredNode.name}</span>
-            <span className="text-gray-300">•</span>
-            <span className="text-gray-600">{(hoveredNode as any).connections || 1} connections</span>
-            <span className="text-gray-300">•</span>
-            <span className="text-purple-600 font-medium">{Math.round(((hoveredNode as any).importance || 0) * 100)}%</span>
-          </div>
-        )}
+      {/* Hover Info - Fixed bottom, light theme */}
+      {hoveredNode && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-gray-900 bg-white/95 px-4 py-2 rounded-lg border border-gray-200 flex items-center gap-3 backdrop-blur-sm shadow-xl z-50">
+          <div className="w-4 h-4 rounded-full shadow" style={{ backgroundColor: getNodeColor(hoveredNode) }} />
+          <span className="font-semibold">{hoveredNode.name}</span>
+          <span className="text-gray-300">•</span>
+          <span className="text-gray-600">{(hoveredNode as any).connections || 1} connections</span>
+          <span className="text-gray-300">•</span>
+          <span className="text-purple-600 font-medium">{Math.round(((hoveredNode as any).importance || 0) * 100)}%</span>
+        </div>
+      )}
 
       {/* Sidebar Panels: Notes as Modal Popup */}
       {showNotes && selectedNode && (
@@ -643,7 +643,7 @@ export default function KnowledgeGraph({
           onClose={() => setShowNotes(false)}
           conceptName={selectedNode.name}
           currentNotes={getCurrentNotes(selectedNode.id)}
-          onSaveNotes={onSaveNotes || (() => {})}
+          onSaveNotes={onSaveNotes || (() => { })}
           conceptDefinition={conceptDefinition}
           loadingDefinition={loadingDef}
         />

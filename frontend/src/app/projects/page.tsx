@@ -42,7 +42,13 @@ export default function Home() {
   const loadProjects = async () => {
     try {
       const data = await listProjects();
-      setProjects(data as Project[] || []);
+      // Sort projects by date (newest first)
+      const sortedProjects = (data as Project[] || []).sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return dateB - dateA; // Descending order (newest first)
+      });
+      setProjects(sortedProjects);
     } catch (error) {
       console.error("Failed to load projects:", error);
     } finally {
@@ -63,9 +69,8 @@ export default function Home() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col bg-gray-50 transition-all duration-700 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-      }`}
+      className={`min-h-screen flex flex-col bg-gray-50 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        }`}
     >
       {/* Header */}
       <header className="flex justify-between items-center p-6 border-b border-gray-200 backdrop-blur-sm bg-white/80">
@@ -142,7 +147,7 @@ export default function Home() {
                     </Button>
                   </div>
                 ))}
-                
+
                 {/* Create New Project Card */}
                 <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all"
                   onClick={() => setShowUpload(true)}>
