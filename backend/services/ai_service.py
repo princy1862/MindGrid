@@ -681,34 +681,79 @@ async def generate_audio(script_text: str) -> str:
         if not script_text or not script_text.strip():
             raise Exception("script_text is empty; cannot generate audio")
 
-        api_key = os.getenv("ELEVENLABS_API_KEY")
-        if not api_key:
-            raise Exception(
-                "ELEVENLABS_API_KEY is not set. Set it locally and in Cloud Run env vars."
+        # Try Murf API first, fallback to ElevenLabs
+        murf_api_key = os.getenv("MURF_API_KEY")
+        elevenlabs_api_key = os.getenv("ELEVENLABS_API_KEY")
+        
+        if murf_api_key:
+            # Use Murf.ai for TTS
+            print(f"🎤 Using Murf.ai for TTS...")
+            import httpx
+            import base64
+            
+            murf_url = "https://api.murf.ai/v1/speech/generate"
+            headers = {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "api-key": murf_api_key
+            }
+            payload = {
+                "voiceId": "en-US-marcus",  # Natural English voice
+                "text": script_text,
+                "format": "MP3",
+                "sampleRate": 44100,
+                "modelVersion": "GEN2"
+            }
+            
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(murf_url, json=payload, headers=headers)
+                
+                if response.status_code != 200:
+                    raise Exception(f"Murf API error: {response.status_code} - {response.text}")
+                
+                result = response.json()
+                audio_url = result.get("audioFile")
+                
+                if not audio_url:
+                    raise Exception(f"Murf API did not return audio URL: {result}")
+                
+                # Download the audio file
+                audio_response = await client.get(audio_url)
+                audio_bytes = audio_response.content
+                
+                # Convert to base64 for transmission
+                audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+                return f"data:audio/mpeg;base64,{audio_base64}"
+        
+        elif elevenlabs_api_key:
+            # Fallback to ElevenLabs
+            print(f"🎤 Using ElevenLabs for TTS...")
+            client = ElevenLabs(api_key=elevenlabs_api_key)
+
+            # Generate audio using ElevenLabs text-to-speech
+            audio_generator = client.text_to_speech.convert(
+                voice_id="pNInz6obpgDQGcFmaJgB",  # Adam - Deep, confident, casual buddy vibe
+                text=script_text,
+                model_id="eleven_multilingual_v2",
+                output_format="mp3_44100_128"
             )
 
-        # Initialize ElevenLabs client with API key
-        client = ElevenLabs(api_key=api_key)
-
-        # Generate audio using ElevenLabs text-to-speech
-        audio_generator = client.text_to_speech.convert(
-            voice_id="pNInz6obpgDQGcFmaJgB",  # Adam - Deep, confident, casual buddy vibe
-            text=script_text,
-            model_id="eleven_multilingual_v2",
-            output_format="mp3_44100_128"
-        )
-
-        # Collect audio bytes from generator
-        audio_bytes = b""
-        for chunk in audio_generator:
-            audio_bytes += chunk
+            # Collect audio bytes from generator
+            audio_bytes = b""
+            for chunk in audio_generator:
+                audio_bytes += chunk
+            
+            # Convert to base64 for transmission
+            import base64
+            audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+            
+            # Return data URL that can be used directly in audio player
+            return f"data:audio/mpeg;base64,{audio_base64}"
         
-        # Convert to base64 for transmission
-        import base64
-        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
-        
-        # Return data URL that can be used directly in audio player
-        return f"data:audio/mpeg;base64,{audio_base64}"
+        else:
+            raise Exception(
+                "No TTS API key set. Set either MURF_API_KEY or ELEVENLABS_API_KEY in environment variables."
+            )
 
     except Exception as e:
         # Surface upstream error details to help diagnose (e.g., quota, auth)
